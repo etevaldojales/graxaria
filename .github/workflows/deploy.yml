@@ -1,0 +1,82 @@
+name: Deploy Laravel App to cPanel
+
+on:
+  push:
+    branches: [ main, master ] # Dispara o deploy ao enviar commits para main ou master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, mysql, zip
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: |
+          composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install NPM Dependencies & Build Assets
+        run: |
+          npm ci
+          npm run build
+
+      # ==========================================
+      # OPÇÃO A: DEPLOY VIA SSH & RSYNC (RECOMENDADO)
+      # ==========================================
+      - name: Deploy via SSH/rsync
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+          TARGET: ${{ secrets.SSH_TARGET_DIR }} # Ex: /home/graxaria/public_html ou similar
+          EXCLUDE: "/node_modules/, /tests/, /storage/logs/, .git/, .github/"
+
+      - name: Run Commands via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            cd ${{ secrets.SSH_TARGET_DIR }}
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+      # ==========================================
+      # OPÇÃO B: DEPLOY VIA FTP (ALTERNATIVA PARA HOSPEDAGEM SEM SSH)
+      # Para utilizar, comente a seção "OPÇÃO A" acima e descomente as linhas abaixo.
+      # ==========================================
+      # - name: Deploy via FTP
+      #   uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      #   with:
+      #     server: ${{ secrets.FTP_SERVER }}
+      #     username: ${{ secrets.FTP_USERNAME }}
+      #     password: ${{ secrets.FTP_PASSWORD }}
+      #     server-dir: public_html/ # Ajuste para a pasta correta do cPanel (ex: public_html ou subpasta)
+      #     exclude: |
+      #       **/.git*
+      #       **/.git*/**
+      #       **/node_modules/**
+      #       **/tests/**
+      #       **/storage/logs/**
+      #
+      # - name: Trigger Remote Migrations (Web)
+      #   run: |
+      #     curl -X GET "https://graxaria.com.br/deploy/migrate/${{ secrets.DEPLOY_TOKEN }}"
