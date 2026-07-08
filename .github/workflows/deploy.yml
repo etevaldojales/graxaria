@@ -42,6 +42,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.SSH_HOST }}
           REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+          REMOTE_PORT: ${{ secrets.SSH_PORT || 22 }}
           TARGET: ${{ secrets.SSH_TARGET_DIR }} # Ex: /home/graxaria/public_html ou similar
           EXCLUDE: "/node_modules/, /tests/, /storage/logs/, .git/, .github/"
 
