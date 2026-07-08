@@ -36,48 +36,47 @@ jobs:
       # ==========================================
       # OPÇÃO A: DEPLOY VIA SSH & RSYNC (RECOMENDADO)
       # ==========================================
-      - name: Deploy via SSH/rsync
-        uses: easingthemes/ssh-deploy@main
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
-          REMOTE_PORT: ${{ secrets.SSH_PORT || 22 }}
-          TARGET: ${{ secrets.SSH_TARGET_DIR }} # Ex: /home/graxaria/public_html ou similar
-          EXCLUDE: "/node_modules/, /tests/, /storage/logs/, .git/, .github/"
-
-      - name: Run Commands via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            cd ${{ secrets.SSH_TARGET_DIR }}
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+      # - name: Deploy via SSH/rsync
+      #   uses: easingthemes/ssh-deploy@main
+      #   with:
+      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     REMOTE_HOST: ${{ secrets.SSH_HOST }}
+      #     REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+      #     REMOTE_PORT: ${{ secrets.SSH_PORT || 22 }}
+      #     TARGET: ${{ secrets.SSH_TARGET_DIR }} # Ex: /home/graxaria/public_html ou similar
+      #     EXCLUDE: "/node_modules/, /tests/, /storage/logs/, .git/, .github/"
+      #
+      # - name: Run Commands via SSH
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     port: ${{ secrets.SSH_PORT || 22 }}
+      #     script: |
+      #       cd ${{ secrets.SSH_TARGET_DIR }}
+      #       php artisan migrate --force
+      #       php artisan config:cache
+      #       php artisan route:cache
+      #       php artisan view:cache
 
       # ==========================================
       # OPÇÃO B: DEPLOY VIA FTP (ALTERNATIVA PARA HOSPEDAGEM SEM SSH)
-      # Para utilizar, comente a seção "OPÇÃO A" acima e descomente as linhas abaixo.
       # ==========================================
-      # - name: Deploy via FTP
-      #   uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      #   with:
-      #     server: ${{ secrets.FTP_SERVER }}
-      #     username: ${{ secrets.FTP_USERNAME }}
-      #     password: ${{ secrets.FTP_PASSWORD }}
-      #     server-dir: public_html/ # Ajuste para a pasta correta do cPanel (ex: public_html ou subpasta)
-      #     exclude: |
-      #       **/.git*
-      #       **/.git*/**
-      #       **/node_modules/**
-      #       **/tests/**
-      #       **/storage/logs/**
-      #
-      # - name: Trigger Remote Migrations (Web)
-      #   run: |
-      #     curl -X GET "https://graxaria.com.br/deploy/migrate/${{ secrets.DEPLOY_TOKEN }}"
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_TARGET_DIR || 'public_html/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/storage/logs/**
+
+      - name: Trigger Remote Migrations (Web)
+        run: |
+          curl -X GET "https://graxaria.com.br/deploy/migrate/${{ secrets.DEPLOY_TOKEN }}"
