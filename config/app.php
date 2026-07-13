@@ -118,6 +118,8 @@ return [
     |
     */
 
+    'deploy_token' => env('DEPLOY_TOKEN'),
+
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
