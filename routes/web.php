@@ -6,11 +6,10 @@ Route::get('/', function () {
     return redirect('/admin');
 });
 
-/*
 // Rota auxiliar de deploy seguro (útil para executar migrações quando SSH não estiver disponível)
 Route::get('/deploy/migrate/{token}', function ($token) {
-    if (app()->environment('local')) {
-        return 'Operação não permitida no ambiente local.';
+    if (app()->environment('local') && env('ALLOW_LOCAL_DEPLOY_ROUTES') !== 'true') {
+        return 'Operação não permitida no ambiente local. (Para testar localmente, defina ALLOW_LOCAL_DEPLOY_ROUTES=true no seu .env)';
     }
 
     $expectedToken = config('app.deploy_token');
@@ -27,10 +26,50 @@ Route::get('/deploy/migrate/{token}', function ($token) {
     }
 });
 
+// Nova rota para executar migrate:refresh (recria o banco de dados revertendo e reexecutando migrações)
+Route::get('/deploy/migrate-refresh/{token}', function ($token) {
+    if (app()->environment('local') && env('ALLOW_LOCAL_DEPLOY_ROUTES') !== 'true') {
+        return 'Operação não permitida no ambiente local. (Para testar localmente, defina ALLOW_LOCAL_DEPLOY_ROUTES=true no seu .env)';
+    }
+
+    $expectedToken = config('app.deploy_token');
+
+    if (empty($expectedToken) || $token !== $expectedToken) {
+        abort(403, 'Acesso não autorizado.');
+    }
+
+    try {
+        Illuminate\Support\Facades\Artisan::call('migrate:refresh', ['--force' => true]);
+        return 'Banco de dados resetado (refresh) e migrado com sucesso:<br><pre>' . Illuminate\Support\Facades\Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return 'Erro ao executar migrate:refresh: ' . $e->getMessage();
+    }
+});
+
+// Nova rota para executar migrate:fresh (recria o banco de dados dropando todas as tabelas)
+Route::get('/deploy/migrate-fresh/{token}', function ($token) {
+    if (app()->environment('local') && env('ALLOW_LOCAL_DEPLOY_ROUTES') !== 'true') {
+        return 'Operação não permitida no ambiente local. (Para testar localmente, defina ALLOW_LOCAL_DEPLOY_ROUTES=true no seu .env)';
+    }
+
+    $expectedToken = config('app.deploy_token');
+
+    if (empty($expectedToken) || $token !== $expectedToken) {
+        abort(403, 'Acesso não autorizado.');
+    }
+
+    try {
+        Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+        return 'Banco de dados recriado (fresh) e migrado com sucesso:<br><pre>' . Illuminate\Support\Facades\Artisan::output() . '</pre>';
+    } catch (\Exception $e) {
+        return 'Erro ao executar migrate:fresh: ' . $e->getMessage();
+    }
+});
+
 // Nova rota para limpar cache em produção via cPanel (suporta com hífen ou underline)
 $clearCacheCallback = function ($token) {
-    if (app()->environment('local')) {
-        return 'Operação não permitida no ambiente local.';
+    if (app()->environment('local') && env('ALLOW_LOCAL_DEPLOY_ROUTES') !== 'true') {
+        return 'Operação não permitida no ambiente local. (Para testar localmente, defina ALLOW_LOCAL_DEPLOY_ROUTES=true no seu .env)';
     }
 
     $expectedToken = config('app.deploy_token');
@@ -55,8 +94,8 @@ Route::get('/deploy/clear_cache/{token}', $clearCacheCallback);
 
 // Rota auxiliar para configurar o usuário administrador em produção
 Route::get('/deploy/setup-admin/{token}', function ($token) {
-    if (app()->environment('local')) {
-        return 'Operação não permitida no ambiente local.';
+    if (app()->environment('local') && env('ALLOW_LOCAL_DEPLOY_ROUTES') !== 'true') {
+        return 'Operação não permitida no ambiente local. (Para testar localmente, defina ALLOW_LOCAL_DEPLOY_ROUTES=true no seu .env)';
     }
 
     $expectedToken = config('app.deploy_token');
@@ -92,7 +131,6 @@ Route::get('/deploy/setup-admin/{token}', function ($token) {
         return 'Erro ao configurar perfil administrador: ' . $e->getMessage();
     }
 });
-*/
 
 use App\Models\Sale;
 use Barryvdh\DomPDF\Facade\Pdf;
