@@ -164,4 +164,24 @@ Route::get('/sales/{sale}/certificate/pdf', function (Sale $sale) {
     abort(400, 'Tipo de produto inválido para emissão de laudo.');
 })->name('sales.certificate.pdf');
 
+// Módulo Mobile para Motoristas
+Route::prefix('mobile')->group(function () {
+    Route::get('/login', [App\Http\Controllers\MobileController::class, 'showLogin'])->name('mobile.login');
+    Route::post('/login', [App\Http\Controllers\MobileController::class, 'login'])->name('mobile.login.post');
+    Route::post('/logout', [App\Http\Controllers\MobileController::class, 'logout'])->name('mobile.logout');
+
+    Route::middleware(App\Http\Middleware\MobileDriverMiddleware::class)->group(function () {
+        Route::get('/dashboard', [App\Http\Controllers\MobileController::class, 'dashboard'])->name('mobile.dashboard');
+        Route::get('/checkin', [App\Http\Controllers\MobileController::class, 'showCheckin'])->name('mobile.checkin');
+        Route::post('/checkin', [App\Http\Controllers\MobileController::class, 'checkin'])->name('mobile.checkin.post');
+        Route::get('/checkout', [App\Http\Controllers\MobileController::class, 'showCheckout'])->name('mobile.checkout');
+        Route::post('/checkout', [App\Http\Controllers\MobileController::class, 'checkout'])->name('mobile.checkout.post');
+        Route::get('/vehicle/{id}/odometer', [App\Http\Controllers\MobileController::class, 'getVehicleOdometer'])->name('mobile.vehicle.odometer');
+        Route::get('/collection', [App\Http\Controllers\MobileController::class, 'showCollection'])->name('mobile.collection');
+        Route::post('/collection', [App\Http\Controllers\MobileController::class, 'collection'])->name('mobile.collection.post');
+        Route::get('/commissions', [App\Http\Controllers\MobileController::class, 'commissions'])->name('mobile.commissions');
+    });
+});
+
+
 
