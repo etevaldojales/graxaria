@@ -24,4 +24,14 @@ class Sale extends Model
     {
         return $this->belongsTo(Client::class);
     }
+
+    public function tallowCertificates()
+    {
+        return $this->hasMany(TallowQualityCertificate::class);
+    }
+
+    public function mealCertificates()
+    {
+        return $this->hasMany(MealQualityCertificate::class);
+    }
 }

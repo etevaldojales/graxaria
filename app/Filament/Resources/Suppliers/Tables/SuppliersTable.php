@@ -41,6 +41,11 @@ class SuppliersTable
                     ->label('Preço/KG Base')
                     ->money('BRL')
                     ->sortable(),
+                TextColumn::make('route.name')
+                    ->label('Rota')
+                    ->placeholder('Sem Rota')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Cadastrado em')
                     ->dateTime('d/m/Y H:i')

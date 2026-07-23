@@ -50,6 +50,12 @@ class SupplierForm
                     ->numeric()
                     ->prefix('R$')
                     ->default(0.0),
+                Select::make('route_id')
+                    ->label('Rota / Setor')
+                    ->relationship('route', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
             ]);
     }
 }

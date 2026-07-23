@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         // 1. Create Default Admin User
         User::create([
             'name' => 'Administrador SisGraxaria',
-            'email' => 'admin@sisgraxaria.com',
+            'email' => 'admin@sisgraxaria.com.br',
             'password' => bcrypt('admin123'),
         ]);
 
